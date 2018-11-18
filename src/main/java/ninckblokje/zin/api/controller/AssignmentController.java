@@ -1,14 +1,18 @@
 package ninckblokje.zin.api.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import ninckblokje.zin.api.entity.Assignment;
 import ninckblokje.zin.api.entity.Company;
 import ninckblokje.zin.api.repository.AssignmentRepository;
 import ninckblokje.zin.api.repository.CompanyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.rest.webmvc.json.DomainObjectReader;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -19,6 +23,10 @@ public class AssignmentController {
     private AssignmentRepository assignmentRepository;
     @Autowired
     private CompanyRepository companyRepository;
+    @Autowired
+    private DomainObjectReader domainObjectReader;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @PostMapping
     @Transactional
@@ -46,5 +54,26 @@ public class AssignmentController {
         Company company = companyRepository.findById(companyId).orElse(null);
 
         return assignmentRepository.getByIdAndCompany(assignmentId, company);
+    }
+
+    @PatchMapping("/{assignmentId}")
+    @Transactional
+    public void patchAssignment(@PathVariable("companyId") Long companyId, @PathVariable("assignmentId") Long assignmentId, HttpServletRequest request) throws IOException {
+        Company company = new Company();
+        company.setId(companyId);
+
+        Assignment assignment = assignmentRepository.getByIdAndCompany(assignmentId, company);
+        Assignment patchedAssignment = domainObjectReader.read(request.getInputStream(), assignment, objectMapper);
+    }
+
+    @PutMapping("/{assignmentId}")
+    @Transactional
+    public void  updateAssignment(@PathVariable("companyId") Long companyId, @PathVariable("assignmentId") Long assignmentId, @RequestBody @Valid Assignment assignment) {
+        Company company = companyRepository.findById(companyId).orElse(null);
+
+        assignment.setId(assignmentId);
+        assignment.setCompany(company);
+
+        assignmentRepository.save(assignment);
     }
 }

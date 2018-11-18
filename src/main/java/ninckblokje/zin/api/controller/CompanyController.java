@@ -50,7 +50,6 @@ public class CompanyController {
     public void patchCompany(@PathVariable Long companyId, HttpServletRequest request) throws IOException {
         Company company = repository.findById(companyId).orElse(null);
         Company patchedCompany = domainObjectReader.read(request.getInputStream(), company, objectMapper);
-        patchedCompany.setId(companyId);
     }
 
     @PutMapping("/{companyId}")
