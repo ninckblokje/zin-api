@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional
+@Transactional(readOnly = true)
 public class EverythingService {
 
     @Autowired
@@ -25,7 +25,7 @@ public class EverythingService {
     @Autowired
     private RatingRepository ratingRepository;
 
-    public CompanyDTO getEverything(Long companyId) {
+    public CompanyDTO getEverythingForCompany(Long companyId) {
         CompanyDTO companyDTO = new CompanyDTO();
 
         Company company = companyRepository.findById(companyId).orElse(null);

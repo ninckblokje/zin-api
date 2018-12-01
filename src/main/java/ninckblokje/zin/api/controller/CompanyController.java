@@ -5,6 +5,7 @@ import ninckblokje.zin.api.entity.Company;
 import ninckblokje.zin.api.repository.CompanyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.json.DomainObjectReader;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,6 +16,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/companies")
+@Secured("ROLE_ZIN_USER")
 public class CompanyController {
 
     @Autowired

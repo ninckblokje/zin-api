@@ -7,6 +7,7 @@ import ninckblokje.zin.api.repository.AssignmentRepository;
 import ninckblokje.zin.api.repository.CompanyRepository;
 import ninckblokje.zin.api.repository.RatingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,6 +16,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/companies/{companyId}/assignments/{assignmentId}/ratings")
+@Secured("ROLE_ZIN_USER")
 public class AssignmentRatingController {
 
     @Autowired
