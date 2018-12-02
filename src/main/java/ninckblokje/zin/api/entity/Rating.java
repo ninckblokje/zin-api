@@ -1,6 +1,8 @@
 package ninckblokje.zin.api.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import javax.validation.constraints.Max;
@@ -10,6 +12,7 @@ import javax.validation.constraints.PastOrPresent;
 import java.time.LocalDate;
 
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 public class Rating {
 
     @Id
@@ -30,6 +33,10 @@ public class Rating {
     @NotNull
     private Integer rating;
     private String reason;
+    @JsonIgnore
+    @Column(nullable = false, updatable = false)
+    @CreatedBy
+    private String userId;
 
     public Long getId() {
         return id;
@@ -77,5 +84,13 @@ public class Rating {
 
     public void setReason(String reason) {
         this.reason = reason;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 }
