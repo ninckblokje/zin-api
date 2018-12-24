@@ -4,7 +4,7 @@ import ninckblokje.zin.api.entity.Company;
 import ninckblokje.zin.api.entity.Rating;
 import ninckblokje.zin.api.repository.CompanyRepository;
 import ninckblokje.zin.api.repository.RatingRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import ninckblokje.zin.api.service.UserService;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -17,15 +17,20 @@ import java.util.List;
 @Secured("ROLE_ZIN_USER")
 public class CompanyRatingController {
 
-    @Autowired
     private CompanyRepository companyRepository;
-    @Autowired
     private RatingRepository ratingRepository;
+    private UserService userService;
+
+    public CompanyRatingController(CompanyRepository companyRepository, RatingRepository ratingRepository, UserService userService) {
+        this.companyRepository = companyRepository;
+        this.ratingRepository = ratingRepository;
+        this.userService = userService;
+    }
 
     @PostMapping
     @Transactional
     public void addRating(@PathVariable("companyId") Long companyId, @RequestBody @Valid Rating rating) {
-        Company company = companyRepository.findById(companyId).orElse(null);
+        Company company = companyRepository.findByIdAndUserId(companyId, userService.getUserId()).orElse(null);
         rating.setCompany(company);
 
         ratingRepository.save(rating);
@@ -35,7 +40,7 @@ public class CompanyRatingController {
     @ResponseBody
     @Transactional(readOnly = true)
     public List<Rating> getAllRatings(@PathVariable("companyId") Long companyId) {
-        return ratingRepository.getAllByCompany(getCompany(companyId));
+        return ratingRepository.getAllByCompanyAndUserId(getCompany(companyId), userService.getUserId());
     }
 
     Company getCompany(Long companyId) {

@@ -6,7 +6,7 @@ import ninckblokje.zin.api.entity.Rating;
 import ninckblokje.zin.api.repository.AssignmentRepository;
 import ninckblokje.zin.api.repository.CompanyRepository;
 import ninckblokje.zin.api.repository.RatingRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import ninckblokje.zin.api.service.UserService;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -19,18 +19,23 @@ import java.util.List;
 @Secured("ROLE_ZIN_USER")
 public class AssignmentRatingController {
 
-    @Autowired
     private AssignmentRepository assignmentRepository;
-    @Autowired
     private CompanyRepository companyRepository;
-    @Autowired
     private RatingRepository ratingRepository;
+    private UserService userService;
+
+    public AssignmentRatingController(AssignmentRepository assignmentRepository, CompanyRepository companyRepository, RatingRepository ratingRepository, UserService userService) {
+        this.assignmentRepository = assignmentRepository;
+        this.companyRepository = companyRepository;
+        this.ratingRepository = ratingRepository;
+        this.userService = userService;
+    }
 
     @PostMapping
     @Transactional
     public void addRating(@PathVariable("companyId") Long companyId, @PathVariable("assignmentId") Long assignmentId, @RequestBody @Valid Rating rating) {
-        Company company = companyRepository.findById(companyId).orElse(null);
-        Assignment assignment = assignmentRepository.getByIdAndCompany(assignmentId, company);
+        Company company = companyRepository.findByIdAndUserId(companyId, userService.getUserId()).orElse(null);
+        Assignment assignment = assignmentRepository.getByIdAndCompanyAndUserId(assignmentId, company, userService.getUserId());
 
         assignment.setCompany(company);
         rating.setAssignment(assignment);
@@ -42,7 +47,7 @@ public class AssignmentRatingController {
     @ResponseBody
     @Transactional(readOnly = true)
     public List<Rating> getAllRatings(@PathVariable("assignmentId") Long assignmentId) {
-        return ratingRepository.getAllByAssignment(getAssigment(assignmentId));
+        return ratingRepository.getAllByAssignmentAndUserId(getAssigment(assignmentId), userService.getUserId());
     }
 
     Assignment getAssigment(Long assignmentId) {

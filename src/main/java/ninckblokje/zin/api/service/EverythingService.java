@@ -8,7 +8,6 @@ import ninckblokje.zin.api.repository.AssignmentRepository;
 import ninckblokje.zin.api.repository.CompanyRepository;
 import ninckblokje.zin.api.repository.RatingRepository;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,33 +15,38 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class EverythingService {
 
-    @Autowired
     private AssignmentRepository assignmentRepository;
-    @Autowired
     private CompanyRepository companyRepository;
-    @Autowired
     private ModelMapper modelMapper;
-    @Autowired
     private RatingRepository ratingRepository;
+    private UserService userService;
+
+    public EverythingService(AssignmentRepository assignmentRepository, CompanyRepository companyRepository, ModelMapper modelMapper, RatingRepository ratingRepository, UserService userService) {
+        this.assignmentRepository = assignmentRepository;
+        this.companyRepository = companyRepository;
+        this.modelMapper = modelMapper;
+        this.ratingRepository = ratingRepository;
+        this.userService = userService;
+    }
 
     public CompanyDTO getEverythingForCompany(Long companyId) {
         CompanyDTO companyDTO = new CompanyDTO();
 
-        Company company = companyRepository.findById(companyId).orElse(null);
+        Company company = companyRepository.findByIdAndUserId(companyId, userService.getUserId()).orElse(null);
         modelMapper.map(company, companyDTO);
 
-        ratingRepository.getAllByCompany(company).forEach(rating -> {
+        ratingRepository.getAllByCompanyAndUserId(company, userService.getUserId()).forEach(rating -> {
             RatingDTO ratingDTO = new RatingDTO();
             companyDTO.getRatings().add(ratingDTO);
             modelMapper.map(rating, ratingDTO);
         });
 
-        assignmentRepository.getAllByCompany(company).forEach(assignment -> {
+        assignmentRepository.getAllByCompanyAndUserId(company, userService.getUserId()).forEach(assignment -> {
             AssignmentDTO assignmentDTO = new AssignmentDTO();
             companyDTO.getAssignments().add(assignmentDTO);
             modelMapper.map(assignment, assignmentDTO);
 
-            ratingRepository.getAllByAssignment(assignment).forEach(rating -> {
+            ratingRepository.getAllByAssignmentAndUserId(assignment, userService.getUserId()).forEach(rating -> {
                 RatingDTO ratingDTO = new RatingDTO();
                 assignmentDTO.getRatings().add(ratingDTO);
                 modelMapper.map(rating, ratingDTO);

@@ -11,6 +11,6 @@ import java.util.List;
 @Repository
 public interface RatingRepository extends CrudRepository<Rating, Long> {
 
-    List<Rating> getAllByAssignment(Assignment assignment);
-    List<Rating> getAllByCompany(Company company);
+    List<Rating> getAllByAssignmentAndUserId(Assignment assignment, String userId);
+    List<Rating> getAllByCompanyAndUserId(Company company, String userId);
 }

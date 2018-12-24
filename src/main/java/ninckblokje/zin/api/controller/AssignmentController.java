@@ -5,6 +5,7 @@ import ninckblokje.zin.api.entity.Assignment;
 import ninckblokje.zin.api.entity.Company;
 import ninckblokje.zin.api.repository.AssignmentRepository;
 import ninckblokje.zin.api.repository.CompanyRepository;
+import ninckblokje.zin.api.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.json.DomainObjectReader;
 import org.springframework.security.access.annotation.Secured;
@@ -21,19 +22,24 @@ import java.util.List;
 @Secured("ROLE_ZIN_USER")
 public class AssignmentController {
 
-    @Autowired
     private AssignmentRepository assignmentRepository;
-    @Autowired
     private CompanyRepository companyRepository;
-    @Autowired
     private DomainObjectReader domainObjectReader;
-    @Autowired
     private ObjectMapper objectMapper;
+    private UserService userService;
+
+    public AssignmentController(AssignmentRepository assignmentRepository, CompanyRepository companyRepository, DomainObjectReader domainObjectReader, ObjectMapper objectMapper, UserService userService) {
+        this.assignmentRepository = assignmentRepository;
+        this.companyRepository = companyRepository;
+        this.domainObjectReader = domainObjectReader;
+        this.objectMapper = objectMapper;
+        this.userService = userService;
+    }
 
     @PostMapping
     @Transactional
     public Long createAssignment(@PathVariable("companyId") Long companyId, @RequestBody @Valid Assignment assignment) {
-        Company company = companyRepository.findById(companyId).orElse(null);
+        Company company = companyRepository.findByIdAndUserId(companyId, userService.getUserId()).orElse(null);
         assignment.setCompany(company);
 
         assignmentRepository.save(assignment);
@@ -44,18 +50,18 @@ public class AssignmentController {
     @Transactional(readOnly = true)
     @ResponseBody
     public List<Assignment> getAllAssignments(@PathVariable("companyId") Long companyId) {
-        Company company = companyRepository.findById(companyId).orElse(null);
+        Company company = companyRepository.findByIdAndUserId(companyId, userService.getUserId()).orElse(null);
 
-        return assignmentRepository.getAllByCompany(company);
+        return assignmentRepository.getAllByCompanyAndUserId(company, userService.getUserId());
     }
 
     @GetMapping("/{assignmentId}")
     @Transactional(readOnly = true)
     @ResponseBody
     public Assignment getAssignment(@PathVariable("companyId") Long companyId, @PathVariable("assignmentId") Long assignmentId) {
-        Company company = companyRepository.findById(companyId).orElse(null);
+        Company company = companyRepository.findByIdAndUserId(companyId, userService.getUserId()).orElse(null);
 
-        return assignmentRepository.getByIdAndCompany(assignmentId, company);
+        return assignmentRepository.getByIdAndCompanyAndUserId(assignmentId, company, userService.getUserId());
     }
 
     @PatchMapping("/{assignmentId}")
@@ -64,7 +70,7 @@ public class AssignmentController {
         Company company = new Company();
         company.setId(companyId);
 
-        Assignment assignment = assignmentRepository.getByIdAndCompany(assignmentId, company);
+        Assignment assignment = assignmentRepository.getByIdAndCompanyAndUserId(assignmentId, company, userService.getUserId());
         Assignment patchedAssignment = domainObjectReader.read(request.getInputStream(), assignment, objectMapper);
         patchedAssignment.setId(assignmentId);
         patchedAssignment.setCompany(company);
@@ -73,7 +79,7 @@ public class AssignmentController {
     @PutMapping("/{assignmentId}")
     @Transactional
     public void  updateAssignment(@PathVariable("companyId") Long companyId, @PathVariable("assignmentId") Long assignmentId, @RequestBody @Valid Assignment assignment) {
-        Company company = companyRepository.findById(companyId).orElse(null);
+        Company company = companyRepository.findByIdAndUserId(companyId, userService.getUserId()).orElse(null);
 
         assignment.setId(assignmentId);
         assignment.setCompany(company);
