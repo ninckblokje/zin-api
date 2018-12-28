@@ -10,6 +10,10 @@ buildscript {
     }
 }
 
+plugins {
+    id 'com.google.cloud.tools.jib' version '0.10.1'
+}
+
 apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'org.springframework.boot'
@@ -20,10 +24,23 @@ version = '1.0.0-SNAPSHOT'
 sourceCompatibility = 11
 targetCompatibility = 11
 
+jib {
+    from {
+        image = 'azul/zulu-openjdk-alpine:11'
+    }
+    to {
+        image = 'ninckblokje/zin-api'
+        tags = ['latest', version]
+    }
+    container {
+        environment = [SPRING_PROFILES_ACTIVE : 'local']
+        ports = ['8080']
+    }
+}
+
 repositories {
     mavenCentral()
 }
-
 
 dependencies {
     implementation('commons-codec:commons-codec:1.11')
